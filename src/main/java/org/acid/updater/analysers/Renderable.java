@@ -19,7 +19,7 @@ public class Renderable extends Analyser {
     @Override
     public ClassNode find(Collection<ClassNode> nodes) {
         for (ClassNode n : nodes) {
-            if (!n.superName.equals(Main.get("CacheableNode")) || !hasAccess(n, Opcodes.ACC_ABSTRACT | Opcodes.ACC_PUBLIC)) {
+            if (!n.superName.equals(Main.get("IndexedCacheableNode")) || !hasAccess(n, Opcodes.ACC_ABSTRACT | Opcodes.ACC_PUBLIC)) {
                 continue;
             }
 
@@ -48,7 +48,7 @@ public class Renderable extends Analyser {
 
     @Override
     public ClassInfo analyse(ClassNode node) {
-        ClassInfo info = new ClassInfo("Renderable", node.name);
+        ClassInfo info = new ClassInfo("Renderable", node);
         info.putField(findModelHeight(node));
         return info;
     }

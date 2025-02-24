@@ -15,22 +15,29 @@ import java.util.Collection;
 /**
  * Created by Brandon on 2014-12-07.
  */
-public class CacheableNode extends Analyser {
+public class IndexedCacheableNode extends Analyser {
 
     @Override
     public ClassNode find(Collection<ClassNode> nodes) {
         for (ClassNode n : nodes) {
-            if (!n.superName.equals(Main.get("Node"))) {
+            if (!n.superName.equals(Main.get("CacheableNode"))) {
                 continue;
             }
 
-            int node_count = 0;
+            int self_instance_count = 0;
+            int long_count = 0;
             for (FieldNode f : n.fields) {
                 if (!hasAccess(f, Opcodes.ACC_STATIC)) {
-                    if (f.desc.equals(String.format("L%s;", n.name)) && (++node_count == 2)) {
-                        return n;
+                    if (f.desc.equals(String.format("L%s;", n.name))) {
+                        self_instance_count++;
+                    } else if (f.desc.equals("J")) {
+                        long_count++;
                     }
                 }
+            }
+
+            if (self_instance_count == 2 && long_count == 1) {
+                return n;
             }
         }
         return null;
@@ -38,7 +45,7 @@ public class CacheableNode extends Analyser {
 
     @Override
     public ClassInfo analyse(ClassNode node) {
-        ClassInfo info = new ClassInfo("CacheableNode", node);
+        ClassInfo info = new ClassInfo("IndexedCacheableNode", node);
         info.putField(findNext(node));
         info.putField(findPrev(node, info.getField("Next")));
         return info;

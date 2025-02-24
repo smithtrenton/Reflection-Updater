@@ -17,15 +17,15 @@ public class GameInstance extends Analyser {
                 continue;
             }
 
-            int int_array_fields = 0;
+            int int_2d_array_fields = 0;
             int int_3d_array_fields = 0;
             int byte_3d_array_fields = 0;
 
             for (FieldNode f : n.fields) {
                 // [[[NodeDequeue; = GroundItems
 
-                if (!hasAccess(f, Opcodes.ACC_STATIC) && f.desc.equals("[I")) {
-                    ++int_array_fields;
+                if (!hasAccess(f, Opcodes.ACC_STATIC) && f.desc.equals("[[I")) {
+                    ++int_2d_array_fields;
                 }
 
                 if (!hasAccess(f, Opcodes.ACC_STATIC) && f.desc.equals("[[[I")) {
@@ -37,7 +37,7 @@ public class GameInstance extends Analyser {
                 }
             }
 
-            if (int_array_fields == 2 && int_3d_array_fields == 1 && byte_3d_array_fields == 1) {
+            if (int_2d_array_fields == 1 && int_3d_array_fields == 1 && byte_3d_array_fields == 1) {
                 return n;
             }
         }
@@ -46,7 +46,7 @@ public class GameInstance extends Analyser {
 
     @Override
     public ClassInfo analyse(ClassNode node) {
-        ClassInfo info = new ClassInfo("GameInstance", node.name);
+        ClassInfo info = new ClassInfo("GameInstance", node);
         info.putField(findPlayers(node));
         info.putField(findNPCCount(node));
         info.putField(findNPCs(node));
@@ -148,10 +148,12 @@ public class GameInstance extends Analyser {
     }
 
     private ClassField findPlane(ClassNode node) {
+        // Always found in (Lde;IIIII)V +1 int if not deob
         final int[] pattern = new int[]{Opcodes.GETFIELD, Opcodes.GETFIELD, Opcodes.LDC, Opcodes.IMUL, Opcodes.ILOAD};
 
         for (MethodNode m : Main.getClass("client").methods) {
             if (!hasAccess(m, Opcodes.ACC_STATIC) && m.desc.equals("(II)V")) {
+//                System.out.printf("%s%s%n", m.name, m.desc);
                 int i = new Finder(m).findPattern(pattern);
                 while (i != -1) {
                     FieldInsnNode f = (FieldInsnNode) m.instructions.get(i);
